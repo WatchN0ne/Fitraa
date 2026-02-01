@@ -45,7 +45,7 @@ const PRODUCTS = {
     sku: "rosewater-spray",
     title: "Rosenwasser Spray",
     price: 14.90,
-    img: "",
+    img: "8d7e4363-49bd-486d-aa06-bd079c970d2b.png",
     tag: "mist",
     desc: "Mist refresh. Subtle reset.",
     text: [
@@ -609,5 +609,6 @@ function mountHeaderScrollState(){
   window.addEventListener("scroll", onScroll, { passive:true });
   onScroll();
 }
+
 
 
