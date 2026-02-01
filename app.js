@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (y) y.textContent = String(new Date().getFullYear());
 
   bindGlobalUI();
+  mountHeaderScrollState();
   mountReveal();
   mountScrollZoom();
   mountSmartVideo();
@@ -591,3 +592,15 @@ function escapeXml(s){
     "<":"&lt;", ">":"&gt;", "&":"&amp;", "'":"&apos;", '"':"&quot;"
   }[c]));
 }
+function mountHeaderScrollState(){
+  const hdr = document.getElementById("hdr");
+  if (!hdr) return;
+
+  const onScroll = () => {
+    hdr.classList.toggle("is-scrolled", (window.scrollY || 0) > 8);
+  };
+
+  window.addEventListener("scroll", onScroll, { passive:true });
+  onScroll();
+}
+
