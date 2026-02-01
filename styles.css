@@ -193,7 +193,7 @@ body{
   padding:10px 12px;
   border:1px solid transparent; /* no background, transparent feel */
 }
-.logo__img{ height:34px; width:auto; display:block; }
+.logo__img{ height:60px; width:auto; display:block; }
 
 .iconLink, .chip{
   border:1px solid var(--line);
@@ -629,5 +629,6 @@ body{
   .frame:hover .sheen{ animation:none !important; opacity:0 !important; }
   [data-reveal="clip"] img, [data-reveal="clip"] video{ clip-path:none !important; }
 }
+
 
 
