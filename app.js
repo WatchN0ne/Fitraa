@@ -33,7 +33,7 @@ const PRODUCTS = {
     sku: "blackseed-soap",
     title: "Schwarzkümmelseife",
     price: 9.90,
-    img: "",
+    img: "0e04dcfa-24f9-44bc-ba14-808b8ef6b378.png",
     tag: "cleanse",
     desc: "Clean start. Calm routine. Minimal.",
     text: [
@@ -609,6 +609,7 @@ function mountHeaderScrollState(){
   window.addEventListener("scroll", onScroll, { passive:true });
   onScroll();
 }
+
 
 
 
