@@ -1,1 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0B1B2B" />
+  <meta name="description" content="FITRAA — Products." />
+  <title>FITRAA — Products</title>
+
+  <link rel="preload" href="styles.css" as="style">
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="app.js"></script>
+</head>
+
+<body data-page="products">
+  <a class="skip" href="#products">Zum Inhalt springen</a>
+
+  <div class="aura" aria-hidden="true">
+    <div class="aura__navy"></div>
+    <div class="aura__grain"></div>
+    <div class="aura__vignette"></div>
+  </div>
+
+  <div class="topline" role="status" aria-live="polite">
+    <div class="wrap topline__inner">
+      <span class="topline__left">FITRAA</span>
+      <div class="topline__right">
+        <button class="chip" id="toggleMotion" type="button" aria-pressed="false">Motion</button>
+        <button class="chip chip--cart" id="openCart" type="button">Cart <span class="badge" id="cartCount">0</span></button>
+      </div>
+    </div>
+  </div>
+
+  <header class="hdr" id="hdr">
+    <div class="wrap hdr__inner">
+      <nav class="nav" aria-label="Navigation">
+        <a class="nav__link" href="index.html#signature">Signature</a>
+        <a class="nav__link" href="#products">Products</a>
+        <a class="nav__link" href="#policy">Policy</a>
+      </nav>
+
+      <a class="logo" href="index.html#signature" aria-label="FITRAA">
+        <span class="logo__placeholder" aria-hidden="true">[ LOGO ]</span>
+      </a>
+
+      <div class="hdr__right">
+        <a class="iconLink" href="index.html#signature">Back</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="productsHero" id="products" aria-label="Products">
+      <div class="wrap productsHero__grid">
+        <div class="reveal">
+          <div class="eyebrow">Products</div>
+          <h1 class="h1">Objects</h1>
+          <p class="sublead">Clean, minimal, scalable.</p>
+        </div>
+
+        <div class="productsTools reveal">
+          <input class="field" id="searchField" type="search" placeholder="Search…" autocomplete="off" />
+          <div class="seg seg--small" role="tablist" aria-label="Filter">
+            <button class="seg__btn isOn" data-filter="all" type="button">All</button>
+            <button class="seg__btn" data-filter="signature" type="button">Signature</button>
+            <button class="seg__btn" data-filter="cleanse" type="button">Cleanse</button>
+            <button class="seg__btn" data-filter="mist" type="button">Mist</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap productsGrid" id="productsGrid"></div>
+    </section>
+
+    <section class="policy" id="policy" aria-label="Policy">
+      <div class="wrap">
+        <div class="sectionHead reveal">
+          <div class="eyebrow">Policy</div>
+          <h2 class="h2">Delivery / Returns</h2>
+          <p class="sublead">Hier später deine echten Texte einfügen.</p>
+        </div>
+
+        <div class="infoRow reveal">
+          <div class="infoCard">
+            <div class="eyebrow">Dispatch</div>
+            <div class="infoText">1–3 Werktage (Beispiel).</div>
+          </div>
+          <div class="infoCard">
+            <div class="eyebrow">Returns</div>
+            <div class="infoText">14 Tage (Beispiel).</div>
+          </div>
+          <div class="infoCard">
+            <div class="eyebrow">Support</div>
+            <div class="infoText">support@deine-domain.de</div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <div class="wrap footer__inner">
+            <div class="footer__brand">FITRAA</div>
+            <div class="muted">© <span id="year"></span></div>
+            <div class="footer__links">
+              <a href="#products">Top</a>
+              <a href="index.html#signature">Signature</a>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <!-- CART -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <div class="drawer__head">
+        <div>
+          <div class="eyebrow">Cart</div>
+          <h2 class="h2" id="cartTitle">Your selection</h2>
+        </div>
+        <button class="chip" id="closeCart" type="button">Close</button>
+      </div>
+      <div class="drawer__body" id="cartItems"></div>
+      <div class="drawer__foot">
+        <div class="row">
+          <span class="muted">Subtotal</span>
+          <strong id="cartSubtotal">0,00 €</strong>
+        </div>
+        <button class="btn btn--ink btn--full" id="checkoutBtn" type="button">Checkout</button>
+        <button class="btn btn--ghost btn--full" id="clearCart" type="button">Clear</button>
+        <div class="tiny muted" id="checkoutHint">Shopify Checkout (oder Demo, solange Shopify nicht gesetzt ist).</div>
+      </div>
+    </div>
+    <div class="drawer__backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+  </aside>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal__head">
+        <h2 class="h2" id="modalTitle">Product</h2>
+        <button class="chip" id="closeModal" type="button">Close</button>
+      </div>
+      <div class="modal__body" id="modalBody"></div>
+      <div class="modal__foot">
+        <button class="btn btn--ghost" id="modalBack" type="button">Back</button>
+        <button class="btn btn--ink" id="modalAdd" type="button">+ Add</button>
+      </div>
+    </div>
+    <div class="modal__backdrop" id="modalBackdrop" aria-hidden="true"></div>
+  </div>
+</body>
+</html>
 
