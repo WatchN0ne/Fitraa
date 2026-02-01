@@ -155,6 +155,12 @@ function mountProductsPage(){
   if (!grid) return;
 
   renderProducts(Object.values(PRODUCTS));
+   
+     // IMPORTANT: products are injected after initial mountReveal ran
+  mountReveal();
+  mountScrollZoom();
+  mountMagnetic();
+
 
   $$(".seg__btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -603,4 +609,5 @@ function mountHeaderScrollState(){
   window.addEventListener("scroll", onScroll, { passive:true });
   onScroll();
 }
+
 
