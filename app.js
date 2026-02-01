@@ -21,7 +21,7 @@ const PRODUCTS = {
     sku: "tallow",
     title: "Halal Beef Tallow",
     price: 24.90,
-    img: "", // put your real image path later e.g. "img/tallow.jpg"
+    img: "04c964c5-dc5d-4dab-bede-fd05d2bae3db.png", // put your real image path later e.g. "img/tallow.jpg"
     tag: "signature",
     desc: "Warm comfort. Barrier glow. Blue glass signature.",
     text: [
@@ -609,6 +609,7 @@ function mountHeaderScrollState(){
   window.addEventListener("scroll", onScroll, { passive:true });
   onScroll();
 }
+
 
 
 
