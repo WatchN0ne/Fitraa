@@ -99,7 +99,13 @@ function bindGlobalUI(){
 
   $("#openCart")?.addEventListener("click", openCart);
   $("#openCart2")?.addEventListener("click", openCart);
-  $("#drawerBackdrop")?.addEventListener("click", closeCart);
+    $("#drawerBackdrop")?.addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeCart();
+  });
+     // prevent clicks inside panel from ever closing drawer
+  document.querySelector("#drawer .drawer__panel")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
   $("#closeCart")?.addEventListener("click", closeCart);
 
   $("#checkoutBtn")?.addEventListener("click", checkout);
@@ -609,6 +615,7 @@ function mountHeaderScrollState(){
   window.addEventListener("scroll", onScroll, { passive:true });
   onScroll();
 }
+
 
 
 
