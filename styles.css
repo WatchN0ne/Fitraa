@@ -519,50 +519,45 @@ body{
 .footer__links a{ color:var(--muted); text-decoration:none; }
 .footer__links a:hover{ color:rgba(10,10,10,.92); }
 
-/* drawer */
-.drawer{ position:fixed; inset:0; z-index:90; pointer-events:none; }
+/* ===== Drawer / Cart (robust) ===== */
+.drawer{
+  position:fixed;
+  inset:0;
+  z-index:9999;              /* over everything */
+  pointer-events:none;       /* inactive when closed */
+}
+
 .drawer.isOpen{ pointer-events:auto; }
+
 .drawer__backdrop{
   position:absolute;
   inset:0;
-  z-index:1;
   background:rgba(11,27,43,.26);
   opacity:0;
-  transition: opacity var(--fast) var(--ease);
+  transition: opacity 180ms var(--ease);
+  z-index:1;                 /* stays behind panel */
 }
+
 .drawer.isOpen .drawer__backdrop{ opacity:1; }
+
 .drawer__panel{
-  position:absolute; right:0; top:0; bottom:0;
-  width:min(440px, 100%);
-  background:#fff;
-  border-left:1px solid var(--line);
-  box-shadow:var(--shadow);
-  transform: translateX(105%);
-  transition: transform 380ms var(--ease);
-  display:flex; flex-direction:column;
-}
-.drawer.isOpen .drawer__panel{
   position:absolute;
   right:0; top:0; bottom:0;
-  z-index:2;                 /* <- WICHTIG */
   width:min(440px, 100%);
   background:#fff;
   border-left:1px solid var(--line);
   box-shadow:var(--shadow);
+
   transform: translateX(105%);
   transition: transform 380ms var(--ease);
-  display:flex; flex-direction:column;
-}
-.drawer__head{
-  padding:14px;
-  border-bottom:1px solid var(--line);
+
   display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
+  flex-direction:column;
+
+  z-index:2;                 /* IMPORTANT: above backdrop */
 }
-.drawer__body{ padding:14px; overflow:auto; display:grid; gap:10px; }
-.drawer__foot{ padding:14px; border-top:1px solid var(--line); display:grid; gap:10px; }
+
+.drawer.isOpen .drawer__panel{ transform:translateX(0); }
 
 .cartItem{
   border:1px solid var(--line);
@@ -629,6 +624,7 @@ body{
   .frame:hover .sheen{ animation:none !important; opacity:0 !important; }
   [data-reveal="clip"] img, [data-reveal="clip"] video{ clip-path:none !important; }
 }
+
 
 
 
