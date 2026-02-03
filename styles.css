@@ -136,7 +136,7 @@ a{color:inherit}
 .nav__link:hover::after{background:var(--navy); transform:scaleX(1)}
 
 .logo{display:flex; justify-content:center; text-decoration:none}
-.logo__img{height:34px; width:auto; display:block}
+.logo__img{height:100px; width:auto; display:block}
 
 .hdr__right{display:flex; justify-content:flex-end}
 
@@ -563,6 +563,7 @@ a{color:inherit}
   .frame:hover .sheen{animation:none !important; opacity:0 !important}
   [data-reveal="clip"] img, [data-reveal="clip"] video{clip-path:none !important}
 }
+
 
 
 
