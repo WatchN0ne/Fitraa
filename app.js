@@ -1,12 +1,8 @@
 "use strict";
 
-/* =========================
-   SHOPIFY (optional now)
-   - If set: real Shopify checkout
-   - If not: demo checkout (still functional)
-   ========================= */
+/* ========= Shopify (optional) ========= */
 const SHOPIFY = {
-  domain: "YOUR_SHOPIFY_DOMAIN", // e.g. yourshop.myshopify.com
+  domain: "YOUR_SHOPIFY_DOMAIN",
   storefrontToken: "YOUR_STOREFRONT_ACCESS_TOKEN",
   apiVersion: "2025-10",
   variants: {
@@ -21,7 +17,7 @@ const PRODUCTS = {
     sku: "tallow",
     title: "Halal Beef Tallow",
     price: 24.90,
-    img: "04c964c5-dc5d-4dab-bede-fd05d2bae3db.png", // put your real image path later e.g. "img/tallow.jpg"
+    img: "04c964c5-dc5d-4dab-bede-fd05d2bae3db.png",
     tag: "signature",
     desc: "Warm comfort. Barrier glow. Blue glass signature.",
     text: [
@@ -64,14 +60,12 @@ const storage = {
 };
 
 const STATE = {
-  cart: storage.get("fitraa_cart_v5", []), // [{sku, qty}]
-  motionOff: storage.get("fitraa_motion_v5", false),
+  cart: storage.get("fitraa_cart_v6", []), // [{sku, qty}]
   modalSku: null
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  const y = $("#year");
-  if (y) y.textContent = String(new Date().getFullYear());
+  $("#year") && ($("#year").textContent = String(new Date().getFullYear()));
 
   bindGlobalUI();
   mountHeaderScrollState();
@@ -89,103 +83,113 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.body.dataset.page === "index") mountIndexPage();
 });
 
-/* ---------- UI ---------- */
+/* ===== Global UI (delegation => unkaputtbar) ===== */
 function bindGlobalUI(){
-  $("#toggleMotion")?.addEventListener("click", (e) => {
-    STATE.motionOff = !STATE.motionOff;
-    storage.set("fitraa_motion_v5", STATE.motionOff);
-    e.currentTarget.setAttribute("aria-pressed", String(STATE.motionOff));
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+
+    // Cart open
+    if (t.closest("#openCart") || t.closest("#openCart2")) { openCart(); return; }
+
+    // Cart close (only backdrop / close button)
+    if (t.closest("#closeCart")) { closeCart(); return; }
+    if (t.closest("#drawerBackdrop")) { closeCart(); return; }
+
+    // Clear
+    if (t.closest("#clearCart")) {
+      STATE.cart = [];
+      persistCart();
+      renderCart();
+      return;
+    }
+
+    // Checkout
+    if (t.closest("#checkoutBtn") || t.closest("#checkoutInline")) { checkout(); return; }
+
+    // Modal close
+    if (t.closest("#closeModal") || t.closest("#modalBackdrop") || t.closest("#modalBack")) { closeModal(); return; }
+
+    // Modal add
+    if (t.closest("#modalAdd")) {
+      if (STATE.modalSku) addToCart(STATE.modalSku, 1);
+      closeModal();
+      return;
+    }
+
+    // Legal open/close
+    if (t.closest("#openLegal")) { openLegal(); return; }
+    if (t.closest("#closeLegal") || t.closest("#closeLegal2") || t.closest("#legalBackdrop")) { closeLegal(); return; }
   });
 
-  $("#openCart")?.addEventListener("click", openCart);
-  $("#openCart2")?.addEventListener("click", openCart);
-    $("#drawerBackdrop")?.addEventListener("click", (e) => {
-    if (e.target === e.currentTarget) closeCart();
-  });
-     // prevent clicks inside panel from ever closing drawer
-  document.querySelector("#drawer .drawer__panel")?.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
-  $("#closeCart")?.addEventListener("click", closeCart);
-
-  $("#checkoutBtn")?.addEventListener("click", checkout);
-  $("#checkoutInline")?.addEventListener("click", checkout);
-
-  $("#clearCart")?.addEventListener("click", () => {
-    STATE.cart = [];
-    persistCart();
-    renderCart();
-  });
-
-  $("#closeModal")?.addEventListener("click", closeModal);
-  $("#modalBackdrop")?.addEventListener("click", closeModal);
-  $("#modalBack")?.addEventListener("click", closeModal);
-  $("#modalAdd")?.addEventListener("click", () => {
-    if (!STATE.modalSku) return;
-    addToCart(STATE.modalSku, 1);
-    closeModal();
-  });
+  // Prevent clicks inside cart panel from closing (extra safety)
+  $("#drawer .drawer__panel")?.addEventListener("click", (e) => e.stopPropagation());
+  $("#modal .modal__panel")?.addEventListener("click", (e) => e.stopPropagation());
+  $("#legal .modal__panel")?.addEventListener("click", (e) => e.stopPropagation());
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape"){ closeCart(); closeModal(); }
+    if (e.key === "Escape"){ closeCart(); closeModal(); closeLegal(); }
   });
 }
 
+/* ===== Index specific ===== */
 function mountIndexPage(){
   $("#openTallowModal")?.addEventListener("click", () => openModal("tallow"));
   $("#addTallow")?.addEventListener("click", () => addToCart("tallow", 1));
   $("#addTallow2")?.addEventListener("click", () => addToCart("tallow", 1));
 }
 
+/* ===== Switch (Atelier) ===== */
 function mountSwitches(){
-  const seg = $(".seg");
-  if (!seg) return;
-
-  seg.addEventListener("click", (e) => {
-    const btn = e.target.closest(".seg__btn");
+  const root = document.body;
+  root.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-pane]");
     if (!btn) return;
     const paneId = btn.dataset.pane;
+    const group = btn.closest(".atelier__media") || document;
     if (!paneId) return;
 
-    $$(".seg__btn").forEach(b => {
+    group.querySelectorAll(".switch__btn").forEach(b => {
       b.classList.toggle("isOn", b === btn);
       b.setAttribute("aria-selected", String(b === btn));
     });
-    $$(".pane").forEach(p => p.classList.toggle("isOn", p.id === paneId));
+    group.querySelectorAll(".pane").forEach(p => p.classList.toggle("isOn", p.id === paneId));
+
+    mountReveal();
+    mountScrollZoom();
+    mountMagnetic();
+    mountSmartVideo();
   });
 }
 
-/* ---------- PRODUCTS PAGE ---------- */
+/* ===== Products page ===== */
 function mountProductsPage(){
   const grid = $("#productsGrid");
   if (!grid) return;
 
   renderProducts(Object.values(PRODUCTS));
-   
-     // IMPORTANT: products are injected after initial mountReveal ran
-  mountReveal();
-  mountScrollZoom();
-  mountMagnetic();
+  mountReveal(); mountScrollZoom(); mountMagnetic();
 
-
-  $$(".seg__btn").forEach(btn => {
+  // Filter tabs
+  $$(".tabs__btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      $$(".seg__btn").forEach(b => b.classList.remove("isOn"));
+      $$(".tabs__btn").forEach(b => b.classList.remove("isOn"));
       btn.classList.add("isOn");
-      const filter = btn.dataset.filter || "all";
-      const q = ($("#searchField")?.value || "").trim().toLowerCase();
-      applyProductsFilter(filter, q);
+      btn.setAttribute("aria-selected", "true");
+      $$(".tabs__btn").filter(b => b !== btn).forEach(b => b.setAttribute("aria-selected","false"));
+      applyProductsFilter(btn.dataset.filter || "all", ($("#searchField")?.value||"").trim().toLowerCase());
     });
   });
 
+  // Search
   $("#searchField")?.addEventListener("input", (e) => {
     const q = String(e.target.value || "").trim().toLowerCase();
-    const active = $(".seg__btn.isOn")?.dataset.filter || "all";
+    const active = $(".tabs__btn.isOn")?.dataset.filter || "all";
     applyProductsFilter(active, q);
   });
 
+  // Card actions
   grid.addEventListener("click", (e) => {
-    const card = e.target.closest(".pCard");
+    const card = e.target.closest(".card");
     if (!card) return;
     const sku = card.dataset.sku;
     const b = e.target.closest("button");
@@ -204,27 +208,25 @@ function mountProductsPage(){
       p.tag.toLowerCase().includes(q)
     );
     renderProducts(list);
-    mountReveal();
-    mountScrollZoom();
-    mountMagnetic();
+    mountReveal(); mountScrollZoom(); mountMagnetic();
   }
 
   function renderProducts(list){
     grid.innerHTML = list.map(p => `
-      <article class="pCard reveal zoomTarget" data-zoom="1.04" data-sku="${p.sku}">
-        <div class="pMedia" data-reveal="clip">
+      <article class="card reveal zoomTarget" data-zoom="1.04" data-sku="${p.sku}">
+        <div class="card__media" data-reveal="clip">
           <img loading="lazy" decoding="async" src="${p.img || premiumPlaceholder(p.title)}" alt="${p.title}">
           <div class="sheen" aria-hidden="true"></div>
         </div>
-        <div class="pBody">
-          <div class="pTop">
-            <h3 class="pTitle">${p.title}</h3>
-            <div class="pPrice">${money(p.price)}</div>
+        <div class="card__body">
+          <div class="card__top">
+            <h3 class="card__title">${p.title}</h3>
+            <div class="card__price">${money(p.price)}</div>
           </div>
-          <div class="pDesc">${p.desc}</div>
-          <div class="pActions">
-            <button class="qLink" data-act="open" type="button">Details</button>
-            <button class="qLink qLink--ink" data-act="add" type="button">+ Add</button>
+          <div class="card__desc">${p.desc}</div>
+          <div class="card__actions">
+            <button class="link" data-act="open" type="button">Details</button>
+            <button class="link link--ink" data-act="add" type="button">Add</button>
           </div>
         </div>
       </article>
@@ -232,7 +234,7 @@ function mountProductsPage(){
   }
 }
 
-/* ---------- REVEALS ---------- */
+/* ===== Reveals ===== */
 function mountReveal(){
   const els = $$(".reveal:not(.is-in)");
   if (!els.length) return;
@@ -251,15 +253,14 @@ function mountReveal(){
   els.forEach(el => io.observe(el));
 }
 
+/* ===== Scroll Zoom (smooth, performant) ===== */
 function mountScrollZoom(){
   const targets = $$(".zoomTarget");
   if (!targets.length) return;
 
   let ticking = false;
-
   function update(){
     ticking = false;
-    if (STATE.motionOff) return;
 
     const vh = window.innerHeight || 800;
     for (const el of targets){
@@ -281,12 +282,12 @@ function mountScrollZoom(){
       requestAnimationFrame(update);
     }
   }
-
   window.addEventListener("scroll", onScroll, { passive:true });
   window.addEventListener("resize", onScroll, { passive:true });
   update();
 }
 
+/* ===== Smart video play/pause ===== */
 function mountSmartVideo(){
   const vids = $$("video[data-smartvideo]");
   if (!vids.length) return;
@@ -294,7 +295,6 @@ function mountSmartVideo(){
   const io = new IntersectionObserver((entries) => {
     for (const en of entries){
       const v = en.target;
-      if (STATE.motionOff){ v.pause(); continue; }
       if (en.isIntersecting) v.play().catch(()=>{});
       else v.pause();
     }
@@ -303,6 +303,7 @@ function mountSmartVideo(){
   vids.forEach(v => io.observe(v));
 }
 
+/* ===== Magnetic hover (subtle) ===== */
 function mountMagnetic(){
   const items = $$(".magnetic");
   if (!items.length) return;
@@ -313,7 +314,6 @@ function mountMagnetic(){
     el.__magBound = true;
 
     el.addEventListener("mousemove", (e) => {
-      if (STATE.motionOff) return;
       const r = el.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
       const y = (e.clientY - r.top) / r.height - 0.5;
@@ -328,6 +328,7 @@ function mountMagnetic(){
   });
 }
 
+/* ===== Scroll progress bar (hero) ===== */
 function mountScrollBar(){
   const bar = $("#scrollBar");
   if (!bar) return;
@@ -350,8 +351,18 @@ function mountScrollBar(){
   update();
 }
 
-/* ---------- CART ---------- */
-function persistCart(){ storage.set("fitraa_cart_v5", STATE.cart); }
+/* ===== Header scroll state ===== */
+function mountHeaderScrollState(){
+  const hdr = $("#hdr");
+  if (!hdr) return;
+
+  const onScroll = () => hdr.classList.toggle("is-scrolled", (window.scrollY || 0) > 8);
+  window.addEventListener("scroll", onScroll, { passive:true });
+  onScroll();
+}
+
+/* ===== Cart ===== */
+function persistCart(){ storage.set("fitraa_cart_v6", STATE.cart); }
 
 function money(n){
   const fixed = (Math.round(n * 100) / 100).toFixed(2);
@@ -395,11 +406,8 @@ function removeLine(sku){
 }
 
 function renderCart(){
-  const countEl = $("#cartCount");
-  if (countEl) countEl.textContent = String(cartCount());
-
-  const subEl = $("#cartSubtotal");
-  if (subEl) subEl.textContent = money(cartSubtotal());
+  $("#cartCount") && ($("#cartCount").textContent = String(cartCount()));
+  $("#cartSubtotal") && ($("#cartSubtotal").textContent = money(cartSubtotal()));
 
   const wrap = $("#cartItems");
   if (!wrap) return;
@@ -423,9 +431,9 @@ function renderCart(){
         <div class="cartMeta">${money(p.price)} • ${line.sku}</div>
 
         <div class="qtyRow">
-          <button class="qtyBtn" data-act="dec" type="button">−</button>
+          <button class="qtyBtn" data-act="dec" type="button" aria-label="minus">−</button>
           <div class="qtyVal">${line.qty}</div>
-          <button class="qtyBtn" data-act="inc" type="button">+</button>
+          <button class="qtyBtn" data-act="inc" type="button" aria-label="plus">+</button>
           <span class="muted" style="margin-left:auto">${money(p.price * line.qty)}</span>
         </div>
 
@@ -461,7 +469,7 @@ function closeCart(){
   d.setAttribute("aria-hidden","true");
 }
 
-/* ---------- MODAL ---------- */
+/* ===== Product Modal ===== */
 function openModal(sku){
   const p = PRODUCTS[sku];
   if (!p) return;
@@ -474,11 +482,11 @@ function openModal(sku){
         <img loading="lazy" decoding="async" src="${p.img || premiumPlaceholder(p.title)}" alt="${p.title}">
       </div>
       <div class="modalText">
-        <div class="eyebrow">FITRAA</div>
+        <div class="kicker kicker--muted">FITRAA</div>
         <p class="muted" style="margin-top:10px;">${p.desc}</p>
         <p>${p.text[0]}</p>
         <p>${p.text[1]}</p>
-        <div class="row" style="margin-top:14px;">
+        <div class="rowBetween" style="margin-top:14px;">
           <strong style="font-size:18px;">${money(p.price)}</strong>
           <span class="muted">secure checkout</span>
         </div>
@@ -499,14 +507,27 @@ function closeModal(){
   STATE.modalSku = null;
 }
 
-/* ---------- CHECKOUT ---------- */
+/* ===== Legal Modal ===== */
+function openLegal(){
+  const m = $("#legal");
+  if (!m) return;
+  m.classList.add("isOpen");
+  m.setAttribute("aria-hidden","false");
+}
+function closeLegal(){
+  const m = $("#legal");
+  if (!m) return;
+  m.classList.remove("isOpen");
+  m.setAttribute("aria-hidden","true");
+}
+
+/* ===== Checkout ===== */
 function isShopifyConfigured(){
   return (
     SHOPIFY.domain && SHOPIFY.domain !== "YOUR_SHOPIFY_DOMAIN" &&
     SHOPIFY.storefrontToken && SHOPIFY.storefrontToken !== "YOUR_STOREFRONT_ACCESS_TOKEN"
   );
 }
-
 function updateCheckoutHint(){
   const hint = $("#checkoutHint");
   if (!hint) return;
@@ -514,33 +535,28 @@ function updateCheckoutHint(){
     ? "Checkout via Shopify Storefront API."
     : "Demo Checkout aktiv (Shopify noch nicht gesetzt).";
 }
-
 async function checkout(){
   if (STATE.cart.length === 0){ openCart(); return; }
   if (!isShopifyConfigured()){ demoCheckout(); return; }
   await checkoutShopify();
 }
-
 function demoCheckout(){
   const lines = STATE.cart.map(l => {
     const p = PRODUCTS[l.sku];
     return `${p.title} × ${l.qty} — ${money(p.price * l.qty)}`;
   }).join("\n");
-
   alert(
     "DEMO CHECKOUT\n\n" +
     lines + "\n\nSubtotal: " + money(cartSubtotal()) +
     "\n\nSobald du Shopify Domain/Token/VariantIDs setzt, geht es automatisch in echten Checkout."
   );
 }
-
 async function checkoutShopify(){
   const lines = STATE.cart.map(line => {
     const variantId = SHOPIFY.variants[line.sku];
     if (!variantId) throw new Error(`No Variant ID for ${line.sku}`);
     return { merchandiseId: variantId, quantity: line.qty };
   });
-
   try{
     const url = await shopifyCartCreate(lines);
     window.location.assign(url);
@@ -549,7 +565,6 @@ async function checkoutShopify(){
     alert("Checkout error. Prüfe Shopify Token / Variant IDs (console).");
   }
 }
-
 async function shopifyGraphQL(query, variables){
   const url = `https://${SHOPIFY.domain}/api/${SHOPIFY.apiVersion}/graphql.json`;
   const res = await fetch(url, {
@@ -564,7 +579,6 @@ async function shopifyGraphQL(query, variables){
   if (json.errors) throw new Error(JSON.stringify(json.errors));
   return json.data;
 }
-
 async function shopifyCartCreate(lines){
   const query = `
     mutation cartCreate($input: CartInput!) {
@@ -580,7 +594,7 @@ async function shopifyCartCreate(lines){
   return data.cartCreate.cart.checkoutUrl;
 }
 
-/* ---------- PLACEHOLDER (premium) ---------- */
+/* ===== Premium placeholder ===== */
 function premiumPlaceholder(label){
   const svg =
 `<?xml version="1.0" encoding="UTF-8"?>
@@ -604,17 +618,7 @@ function escapeXml(s){
     "<":"&lt;", ">":"&gt;", "&":"&amp;", "'":"&apos;", '"':"&quot;"
   }[c]));
 }
-function mountHeaderScrollState(){
-  const hdr = document.getElementById("hdr");
-  if (!hdr) return;
 
-  const onScroll = () => {
-    hdr.classList.toggle("is-scrolled", (window.scrollY || 0) > 8);
-  };
-
-  window.addEventListener("scroll", onScroll, { passive:true });
-  onScroll();
-}
 
 
 
